@@ -1,3 +1,3 @@
 # aicte-project
-source code
-https://drive.google.com/drive/folders/1bnWwGYUA8nyrhgpwhIerud5WkJZ-Gv_y?usp=sharing
+site link
+https://aicte-project-ecxkgldhbcdspawjkf2xqn.streamlit.app/
