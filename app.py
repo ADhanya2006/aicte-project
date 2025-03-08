@@ -139,4 +139,4 @@ if len(history_df) > 1:
 # Reset History Button
 if st.sidebar.button("Reset Progress"):
     st.session_state["history"] = []
-    st.experimental_rerun()
+    st.rerun()
