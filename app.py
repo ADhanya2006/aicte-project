@@ -7,11 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from scipy.stats import percentileofscore
 import joblib
-
-# Set page config
 st.set_page_config(page_title="Enhanced Fitness Tracker", page_icon="🏋", layout="wide")
-
-# Custom Styling
 st.markdown(
     """
     <style>
@@ -22,12 +18,9 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-st.title("🏋 Enhanced Fitness Tracker")
-st.write("Track your fitness progress, set goals, and estimate calorie burn!")
-
-# Sidebar Inputs
-st.sidebar.header("User Input Parameters")
+st.title("🏋 Fitness Tracker")
+st.write("Track fitness progress, set goals, and estimate calorie burn!")
+st.sidebar.header("User Input ")
 def user_input_features():
     age = st.sidebar.number_input("Age", 10, 100, 30)
     weight = st.sidebar.number_input("Weight (kg)", 30, 150, 70)
@@ -40,12 +33,9 @@ def user_input_features():
     gender = st.sidebar.radio("Gender", ("Male", "Female"))
     activity_type = st.sidebar.selectbox("Activity Type", ["Walking", "Running", "Cycling", "Strength Training"])
     intensity = st.sidebar.selectbox("Exercise Intensity", ["Low", "Moderate", "High"])
-    
-    # Encode categorical features
     gender_encoded = 1 if gender == "Male" else 0
     activity_encoded = {"Walking": 1, "Running": 2, "Cycling": 3, "Strength Training": 4}[activity_type]
     intensity_encoded = {"Low": 1, "Moderate": 2, "High": 3}[intensity]
-
     return pd.DataFrame({
         "Gender_male": [gender_encoded],
         "Age": [age],
@@ -57,12 +47,9 @@ def user_input_features():
         "Activity": [activity_encoded],
         "Intensity": [intensity_encoded]
     })
-
 df = user_input_features()
-st.write("### Your Selected Parameters:")
+st.write("### Selected Parameters:")
 st.dataframe(df)
-
-# Generate Realistic Data for Model Training
 np.random.seed(42)
 data = pd.DataFrame({
     "Gender_male": np.random.randint(0, 2, 500),
@@ -83,60 +70,35 @@ data["Calories"] = (
     3 * data["BMI"] +
     10 * data["Activity"] +
     5 * data["Intensity"] +
-    np.random.normal(0, 30, 500)  # Adding slight randomness
+    np.random.normal(0, 30, 500)  
 )
-
-# Train Model
 X = data.drop("Calories", axis=1)
 y = data["Calories"]
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Feature Scaling
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
-
-# Train Model
 model = GradientBoostingRegressor(n_estimators=150, learning_rate=0.1, random_state=42)
 model.fit(X_train_scaled, y_train)
-
-# Save Model
 joblib.dump(model, "fitness_model.pkl")
 joblib.dump(scaler, "scaler.pkl")
-
-# Load Model & Predict
 df_scaled = scaler.transform(df[X_train.columns])
 prediction = model.predict(df_scaled)[0]
-
 st.write("### Predicted Calories Burned:")
 st.metric(label="Estimated Calories Burned", value=f"{round(prediction, 2)} kcal")
-
-# Goal Setting
 st.sidebar.header("Set Your Goal")
 goal = st.sidebar.number_input("Weekly Calorie Burn Goal", 1000, 10000, 3500)
-
-# Store Session Data for Tracking
 if "history" not in st.session_state:
     st.session_state["history"] = []
-
 st.session_state["history"].append({"Calories Burned": round(prediction, 2), "Timestamp": time.strftime("%H:%M:%S")})
-
-# Convert to DataFrame for Visualization
 history_df = pd.DataFrame(st.session_state["history"])
-
 total_calories_burned = history_df["Calories Burned"].sum()
 progress = min(total_calories_burned / goal, 1.0)
-
-# Show Progress Bar
 st.sidebar.progress(progress)
 st.sidebar.write(f"**Goal Progress: {round(progress * 100, 1)}%**")
-
-# Display Tracking Graph
 if len(history_df) > 1:
     st.write("### Progress Over Time")
     st.line_chart(history_df.set_index("Timestamp"))
-
-# Reset History Button
 if st.sidebar.button("Reset Progress"):
     st.session_state["history"] = []
     st.rerun()
